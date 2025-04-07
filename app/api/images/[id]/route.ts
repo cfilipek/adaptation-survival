@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import { getFileById, deleteFileById } from "@/lib/gridfs"
 
-export async function GET(request: Request, context: { params: { id: string } }): Promise<Response> {
+export async function GET(request, { params }) {
   try {
-    const id = context.params.id
+    const id = params.id
 
     if (!id) {
       return NextResponse.json({ error: "Missing file ID" }, { status: 400 })
@@ -30,9 +30,9 @@ export async function GET(request: Request, context: { params: { id: string } })
   }
 }
 
-export async function DELETE(request: Request, context: { params: { id: string } }): Promise<Response> {
+export async function DELETE(request, { params }) {
   try {
-    const id = context.params.id
+    const id = params.id
 
     if (!id) {
       return NextResponse.json({ error: "Missing file ID" }, { status: 400 })

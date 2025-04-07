@@ -3,10 +3,10 @@ import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 import { deleteFileById } from "@/lib/gridfs"
 
-// Use the exact type pattern that Next.js expects
-export async function DELETE(request: Request, context: { params: { id: string } }): Promise<Response> {
+// Simplify the route handler to the most basic form
+export async function DELETE(request, { params }) {
   try {
-    const id = context.params.id
+    const id = params.id
 
     if (!id) {
       return NextResponse.json({ error: "Missing creature ID" }, { status: 400 })
