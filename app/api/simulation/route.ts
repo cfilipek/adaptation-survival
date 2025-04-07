@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
-import type { SimulationEvent } from "@/lib/models"
+import { ObjectId } from "mongodb"
 
-export async function POST(request: Request) {
+export async function POST(request) {
   try {
     const { environmentId, creatureIds } = await request.json()
 
@@ -14,10 +14,11 @@ export async function POST(request: Request) {
     const db = client.db("adaptation-survival")
 
     // Get all creatures for this environment
+    // Fix: Properly convert string IDs to MongoDB ObjectId objects
     const creatures = await db
       .collection("creatures")
       .find({
-        _id: { $in: creatureIds.map((id) => new Object(id)) },
+        _id: { $in: creatureIds.map((id) => new ObjectId(id)) },
         environment: environmentId,
       })
       .toArray()
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     })
 
     // Create a simulation event record
-    const simulationEvent: SimulationEvent = {
+    const simulationEvent = {
       environmentId,
       eventType,
       description: `${eventType} in the ${environmentId} environment`,
