@@ -10,6 +10,8 @@
   node_bundler = "esbuild"
   external_node_modules = ["mongodb"]
   included_files = ["node_modules/mongodb/**/*"]
-  
-  # Increase function timeout to 30 seconds (max allowed by Netlify)
+
+# Set function timeout to 30 seconds (max allowed by Netlify)
+[functions.all]
   timeout = 30
+
