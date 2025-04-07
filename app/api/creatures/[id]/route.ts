@@ -1,12 +1,12 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 import { deleteFileById } from "@/lib/gridfs"
 
-// Fix the type definition for the route handler
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+// Use the exact type pattern that Next.js expects
+export async function DELETE(request: Request, context: { params: { id: string } }): Promise<Response> {
   try {
-    const id = params.id
+    const id = context.params.id
 
     if (!id) {
       return NextResponse.json({ error: "Missing creature ID" }, { status: 400 })
