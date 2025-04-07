@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 import { deleteFileById } from "@/lib/gridfs"
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+// Fix the type definition for the route handler
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = params.id
 
