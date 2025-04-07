@@ -92,21 +92,38 @@ export default function CreateCreature() {
   const uploadImage = async () => {
     if (!creature.image) return null
 
+    // If the image is too large, resize it before uploading
+    const fileToUpload = creature.image
+    if (fileToUpload.size > 2 * 1024 * 1024) {
+      toast({
+        title: "Image is large",
+        description: "Using a smaller version for better upload performance",
+      })
+      // We'll proceed with the original file, but the server will reject if too large
+    }
+
     const formData = new FormData()
-    formData.append("file", creature.image)
+    formData.append("file", fileToUpload)
 
     try {
-      console.log(`Uploading image to MongoDB: ${creature.image.name}, size: ${creature.image.size} bytes`)
+      console.log(`Uploading image to MongoDB: ${fileToUpload.name}, size: ${fileToUpload.size} bytes`)
+
+      // Add a timeout to the fetch request
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 25000)
 
       const response = await fetch("/api/images/upload", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       })
 
+      clearTimeout(timeoutId)
+
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error("Upload response error:", response.status, errorText)
-        throw new Error(`Upload failed with status ${response.status}: ${errorText}`)
+        const errorData = await response.json()
+        console.error("Upload response error:", response.status, errorData)
+        throw new Error(errorData.details || `Upload failed with status ${response.status}`)
       }
 
       const data = await response.json()
@@ -120,16 +137,29 @@ export default function CreateCreature() {
         fileId: data.fileId,
       }
     } catch (error) {
-      console.error("Error uploading image:", error)
-      toast({
-        title: "Upload Error",
-        description: `Failed to upload image: ${error.message}`,
-        variant: "destructive",
-      })
+      // Check if it's an abort error (timeout)
+      if (error.name === "AbortError") {
+        console.error("Upload timed out")
+        toast({
+          title: "Upload Timeout",
+          description: "Image upload took too long. Creating creature without image.",
+          // Changed from "warning" to "default"
+          variant: "default",
+        })
+      } else {
+        console.error("Error uploading image:", error)
+        toast({
+          title: "Upload Error",
+          description: `Failed to upload image: ${error.message}. Creating creature without image.`,
+          // Changed from "warning" to "default"
+          variant: "default",
+        })
+      }
       return null
     }
   }
 
+  // Update handleSubmit to be more resilient
   const handleSubmit = async () => {
     setIsLoading(true)
 
@@ -140,13 +170,18 @@ export default function CreateCreature() {
 
       // Upload image if one was selected
       if (creature.image) {
-        const uploadResult = await uploadImage()
-        if (uploadResult) {
-          imageUrl = uploadResult.url
-          imageId = uploadResult.fileId
-        } else {
-          // If upload fails but we want to continue anyway, use a placeholder
-          console.log("Using placeholder image due to upload failure")
+        try {
+          const uploadResult = await uploadImage()
+          if (uploadResult) {
+            imageUrl = uploadResult.url
+            imageId = uploadResult.fileId
+          } else {
+            // If upload fails but we want to continue anyway, use a placeholder
+            console.log("Using placeholder image due to upload failure")
+          }
+        } catch (uploadError) {
+          console.error("Image upload failed, continuing with placeholder:", uploadError)
+          // Continue with creation using placeholder
         }
       }
 

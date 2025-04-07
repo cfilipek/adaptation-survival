@@ -5,7 +5,14 @@ if (!process.env.URI) {
 }
 
 const uri = process.env.URI
-const options = {}
+const options = {
+  // Add connection pooling options
+  maxPoolSize: 10,
+  minPoolSize: 5,
+  maxIdleTimeMS: 60000,
+  connectTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+}
 
 let client
 let clientPromise: Promise<MongoClient>
